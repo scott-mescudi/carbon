@@ -7,16 +7,23 @@ import (
 	"time"
 )
 
+// NewCarbonStore creates and returns a new CarbonStore instance.
+// If a valid `cleanFrequency` is provided, it starts a goroutine to periodically clean expired keys from the store.
 func NewCarbonStore(cleanFrequency time.Duration) *CarbonStore {
 	z := make(chan struct{})
 	s := CarbonStore{store: sync.Map{}, stopChan: z}
 
+
 	if cleanFrequency != NoClean {
 		go s.cleanStore(cleanFrequency)
 	}
+
 	return &s
 }
 
+// ImportStoreFromFile reads a file and extracts key-value pairs in the format {key=value} using a regular expression.
+// The key-value pairs found in the file are then set in the store with no expiry time (NoExpiry).
+// It also starts a cleaner goroutine if `cleanFrequency` is provided.
 func ImportStoreFromFile(filepath string, cleanFrequency time.Duration) (*CarbonStore, error) {
 	file, err := os.ReadFile(filepath)
 	if err != nil {
@@ -27,19 +34,21 @@ func ImportStoreFromFile(filepath string, cleanFrequency time.Duration) (*Carbon
 	z := make(chan struct{})
 	s := CarbonStore{store: sync.Map{}, stopChan: z}
 
+	
 	pattern := `\{(\w+)=(\w+)\}`
 	re := regexp.MustCompile(pattern)
 	matches := re.FindAllStringSubmatch(string(file), -1)
+
+	
 	for _, match := range matches {
 		if len(match) == 3 {
 			s.Set(match[1], match[2], NoExpiry)
 		}
 	}
 
-
 	if cleanFrequency != NoClean {
 		go s.cleanStore(cleanFrequency)
 	}
-	
+
 	return &s, nil
 }
