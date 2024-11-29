@@ -31,7 +31,7 @@ func ImportStoreFromFile(filepath string, cleanFrequency time.Duration) (*Carbon
 	re := regexp.MustCompile(pattern)
 	matches := re.FindAllStringSubmatch(string(file), -1)
 	for _, match := range matches {
-		if len(match) == 3 { // match[0] is the full match, match[1] is "a", match[2] is "b"
+		if len(match) == 3 {
 			s.Set(match[1], match[2], NoExpiry)
 		}
 	}
