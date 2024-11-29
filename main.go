@@ -1,16 +1,14 @@
 package main
 
 import (
-	"fmt"
 	"time"
 
-	z "github.com/scott-mescudi/carbon/internal"
+	z "github.com/scott-mescudi/carbon/carbon"
+	"fmt"
 )
 
 
-
-
-func main() {
+func carbon(){
 	key := "ehllo"
 	value := 12
 
@@ -18,15 +16,22 @@ func main() {
 	cdb.Set(key, value, 40*time.Second)
 	cdb.Set(value, key, 40*time.Second)
 
+
+	start := time.Now()
 	val, err := cdb.Get(key)
+	fmt.Println(time.Since(start).Nanoseconds())
+
 	if err != nil {
 		fmt.Println("Error getting value:", err)
 		return
 	}
-
-	cdb.BackupToFile("hello.txt")
-
 	fmt.Println(val)
+	cdb.CloseStore()
+}
+
+
+func main() {
+	carbon()
 }
 
 // TODO: add encryption and compression to backup

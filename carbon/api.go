@@ -1,4 +1,4 @@
-package internal
+package carbon
 
 import (
 	"fmt"
@@ -8,7 +8,8 @@ import (
 
 
 func NewCarbonStore(cleanFrequency time.Duration) *CarbonStore {
-	s := CarbonStore{Store: sync.Map{}}
+	z := make(chan struct{})
+	s := CarbonStore{Store: sync.Map{}, stopChan: z}
 	go s.cleanStore(cleanFrequency)
 	return &s
 }
@@ -44,7 +45,7 @@ func (s *CarbonStore) Delete(key any) {
     s.Store.Delete(key)
 }
 
-func (s *CarbonStore) clearAll() {
+func (s *CarbonStore) CloseStore() {
 	s.StopCleaner()
     s.Store.Clear()
 }
