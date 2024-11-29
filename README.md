@@ -19,10 +19,7 @@ If your cache needs to be accessible by multiple instances or services, Redis or
 
 Thank you for providing the code! Based on your code, here's a detailed usage section for the README documentation:
 
-
-Here's the updated README documentation with the additional flags for "no expiry" and "no cleaner":
-
-
+---
 
 ## Installation
 
@@ -171,6 +168,8 @@ if err != nil {
 
 To import the backup into a new **CarbonStore** instance, use `ImportStoreFromFile`.
 
+---
+
 ## Key Invalidation Mechanisms
 
 Carbon provides two mechanisms for invalidating expired keys:
@@ -184,6 +183,13 @@ Carbon provides two mechanisms for invalidating expired keys:
 
 - **On-Demand Expiry Check:** Each time you attempt to retrieve a cached value, Carbon will check if it is expired. If expired, the key is deleted, and `nil` is returned.
 
+---
+
+## Examples
+
+To see more use cases and examples of how to implement **Carbon** in your Go applications, check out the [examples folder](./examples). There, you'll find several example programs that demonstrate different features of the Carbon cache, such as basic caching, using a file-based store, key expiry, and more advanced features like cache backups and cleaner configurations.
+
+---
 
 ## Todo
 
