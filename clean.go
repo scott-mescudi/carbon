@@ -16,9 +16,9 @@ func (s *CarbonStore) cleanStore(cleanFrequency time.Duration) {
 			fmt.Println("Stopping cleanStore goroutine...")
 			return 
 		case <-ticker.C:
-			s.Store.Range(func(key, value any) bool {
+			s.store.Range(func(key, value any) bool {
 				if time.Since(value.(CarbonValue).Expiry) > 0 {
-					s.Store.Delete(key)
+					s.store.Delete(key)
 				}
 				return true
 			})

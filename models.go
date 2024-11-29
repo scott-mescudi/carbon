@@ -6,7 +6,7 @@ import (
 )
 
 type CarbonStore struct {
-	Store sync.Map
+	store sync.Map
 	stopChan chan struct{}
 }
 

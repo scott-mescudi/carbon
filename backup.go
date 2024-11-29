@@ -12,7 +12,7 @@ func (s *CarbonStore) BackupToFile(BackupFileName string) error {
 	}
 	defer f.Close()
 
-	s.Store.Range(func(key, value any) bool {
+	s.store.Range(func(key, value any) bool {
 		carb := value.(CarbonValue)
 		_, err = fmt.Fprintf(f, "%v=%v\n", key, carb.Value)
 		if err != nil {
