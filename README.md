@@ -17,7 +17,6 @@ Carbon provides two efficient mechanisms for invalidating expired keys:
 **When Not to Use Carbon:**  
 If your cache needs to be accessible by multiple instances or services, Redis or a distributed caching solution would be a better fit.
 
-Thank you for providing the code! Based on your code, here's a detailed usage section for the README documentation:
 
 ---
 
