@@ -1,12 +1,10 @@
 package carbon
 
 import (
-	"fmt"
 	"os"
 	"regexp"
 	"sync"
 	"time"
-
 )
 
 func NewCarbonStore(cleanFrequency time.Duration) *CarbonStore {
@@ -19,12 +17,12 @@ func NewCarbonStore(cleanFrequency time.Duration) *CarbonStore {
 	return &s
 }
 
-func ImportStoreFromFile(filepath string, cleanFrequency time.Duration) *CarbonStore {
+func ImportStoreFromFile(filepath string, cleanFrequency time.Duration) (*CarbonStore, error) {
 	file, err := os.ReadFile(filepath)
 	if err != nil {
-		fmt.Println(err)
-		return nil
+		return nil, err
 	}
+
 
 	z := make(chan struct{})
 	s := CarbonStore{store: sync.Map{}, stopChan: z}
@@ -43,5 +41,5 @@ func ImportStoreFromFile(filepath string, cleanFrequency time.Duration) *CarbonS
 		go s.cleanStore(cleanFrequency)
 	}
 	
-	return &s
+	return &s, nil
 }

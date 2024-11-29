@@ -1,7 +1,6 @@
 package carbon
 
 import (
-	"fmt"
 	"time"
 )
 
@@ -13,7 +12,6 @@ func (s *CarbonStore) cleanStore(cleanFrequency time.Duration) {
 	for {
 		select {
 		case <-s.stopChan:
-			fmt.Println("Stopping cleanStore goroutine...")
 			return 
 		case <-ticker.C:
 			s.store.Range(func(key, value any) bool {
