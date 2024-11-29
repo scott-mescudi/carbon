@@ -17,9 +17,14 @@ func (s *CarbonStore) cleanStore(cleanFrequency time.Duration) {
 			return 
 		case <-ticker.C:
 			s.store.Range(func(key, value any) bool {
-				if time.Since(value.(CarbonValue).Expiry) > 0 {
+				if value.(CarbonValue).Expiry == nil {
+					return true
+				}
+
+				if time.Since(*value.(CarbonValue).Expiry) > 0 {
 					s.store.Delete(key)
 				}
+
 				return true
 			})
 		}

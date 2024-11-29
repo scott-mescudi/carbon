@@ -7,6 +7,10 @@ import (
 	
 )
 
+const (
+	NoExpiry = -1
+)
+
 
 func NewCarbonStore(cleanFrequency time.Duration) *CarbonStore {
 	z := make(chan struct{})
@@ -15,16 +19,15 @@ func NewCarbonStore(cleanFrequency time.Duration) *CarbonStore {
 	return &s
 }
 
-//debug
-func (s *CarbonStore) Printall() {
-	s.store.Range(func(key, value any) bool{
-		fmt.Println(key, value)
-			return true
-	})
-}
 
 func (s *CarbonStore)Set(key, value any, expiry time.Duration) {
-	s.store.Store(key, CarbonValue{Value: value, Expiry: time.Now().Add(expiry)})
+	if expiry == NoExpiry {
+		s.store.Store(key, CarbonValue{Value: value, Expiry: nil})
+	}
+
+	exp := time.Now().Add(expiry)
+	s.store.Store(key, CarbonValue{Value: value, Expiry: &exp })
+
 }
 
 func (s *CarbonStore)Get(key any) (value any, err error) {
@@ -34,12 +37,17 @@ func (s *CarbonStore)Get(key any) (value any, err error) {
 	}
 
 	carb := v.(CarbonValue)
-	if carb.Expiry.Before(time.Now()) {
-        s.store.Delete(key)
-        return nil, fmt.Errorf("'%v' is expired", key)
-    }
+	fmt.Println(carb.Expiry != nil)
+	if carb.Expiry != nil {
+		if carb.Expiry.Before(time.Now()) {
+			s.store.Delete(key)
+			return nil, fmt.Errorf("'%v' is expired", key)
+		}	
+	}
 
 	return v.(CarbonValue).Value , nil
+
+	
 }
 
 func (s *CarbonStore) Delete(key any) {
@@ -51,3 +59,11 @@ func (s *CarbonStore) CloseStore() {
     s.store.Clear()
 }
 
+
+//debug
+func (s *CarbonStore) Printall() {
+	s.store.Range(func(key, value any) bool{
+		fmt.Println(key, value)
+			return true
+	})
+}

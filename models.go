@@ -12,5 +12,5 @@ type CarbonStore struct {
 
 type CarbonValue struct {
 	Value any
-	Expiry time.Time
+	Expiry *time.Time
 }
