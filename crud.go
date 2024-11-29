@@ -2,27 +2,19 @@ package carbon
 
 import (
 	"fmt"
-	"sync"
 	"time"
 	
 )
 
 const (
 	NoExpiry = -1
+	NoClean = -1
 )
-
-
-func NewCarbonStore(cleanFrequency time.Duration) *CarbonStore {
-	z := make(chan struct{})
-	s := CarbonStore{store: sync.Map{}, stopChan: z}
-	go s.cleanStore(cleanFrequency)
-	return &s
-}
-
 
 func (s *CarbonStore)Set(key, value any, expiry time.Duration) {
 	if expiry == NoExpiry {
 		s.store.Store(key, CarbonValue{Value: value, Expiry: nil})
+		return
 	}
 
 	exp := time.Now().Add(expiry)
@@ -37,7 +29,6 @@ func (s *CarbonStore)Get(key any) (value any, err error) {
 	}
 
 	carb := v.(CarbonValue)
-	fmt.Println(carb.Expiry != nil)
 	if carb.Expiry != nil {
 		if carb.Expiry.Before(time.Now()) {
 			s.store.Delete(key)
@@ -46,19 +37,20 @@ func (s *CarbonStore)Get(key any) (value any, err error) {
 	}
 
 	return v.(CarbonValue).Value , nil
-
-	
 }
 
 func (s *CarbonStore) Delete(key any) {
     s.store.Delete(key)
 }
 
+func (s *CarbonStore) ClearStore() {
+    s.store.Clear()
+}
+
 func (s *CarbonStore) CloseStore() {
 	s.StopCleaner()
     s.store.Clear()
 }
-
 
 //debug
 func (s *CarbonStore) Printall() {
