@@ -1,99 +1,200 @@
-### **Already Features**:
-1. **Expiry Time for Keys**:
-   - Users can set an expiry time for individual cache entries, automatically invalidating stale data.
+# Carbon - A Lightweight In-Memory Cache for High Throughput  
 
-2. **Set, Retrieve, and Delete Keys/Values**:
-   - Easy interface to interact with the cache, with standard operations (set, get, delete) for cache management.
+**Carbon** is a lightweight, high-performance in-memory cache library for Go, designed to meet the demands of APIs requiring fast and efficient data caching. I created Carbon as an alternative to Redis when it proved too slow for some of my APIs and when managing invalidation in a `sync.Map` became overly complex.  
 
-3. **Cache Invalidation**:
-   - Ability to invalidate the entire cache at once, clearing all cached data in a single operation.
+At its core, Carbon leverages a thread-safe `sync.Map` to ensure simplicity and reliability. The cache operates locally, meaning only the application instance that initialized it can access the data, ensuring isolation and high performance.  
 
----
+### Key Invalidation  
+Carbon provides two efficient mechanisms for invalidating expired keys:  
+- **Background Expiry Check (Optional):** A configurable Go routine runs in the background, periodically checking for expired items and automatically removing them.  
+- **On-Demand Expiry Check:** When retrieving a key, Carbon checks if it is expired. If expired, the key is deleted immediately, and `nil` is returned.  
 
-### **Additional Features to Enhance Your Caching System**:
+### Why Use Carbon?  
+- **When Redis is Too Slow:** If your application requires low-latency caching and Redis introduces unnecessary overhead, Carbon offers a streamlined alternative.  
+- **Simplicity and Expiry Management:** Carbon provides a straightforward in-memory cache solution with built-in support for key expiry and flexible invalidation strategies.  
+- **Local Access Only:** Perfect for use cases where the cache doesn't need to be shared across multiple instances of your application.  
 
-1. **Eviction Policies**:
-   - **LRU (Least Recently Used)**: Automatically evict the least recently accessed items when the cache reaches its memory limit, ensuring that the most frequently used data stays in memory.
-   - **LFU (Least Frequently Used)**: Evict the least frequently accessed items.
-   - **FIFO (First In, First Out)**: Evict the oldest cached items, which can be useful for time-sensitive data.
-   - **Custom Eviction Strategy**: Allow users to define custom eviction policies, enabling more control over cache behavior.
+**When Not to Use Carbon:**  
+If your cache needs to be accessible by multiple instances or services, Redis or a distributed caching solution would be a better fit.
 
-2. **Automatic Cache Resizing**:
-   - Dynamically adjust the cache size based on available system memory. This helps prevent excessive memory usage and ensures optimal performance.
+Thank you for providing the code! Based on your code, here's a detailed usage section for the README documentation:
+
+
+Here's the updated README documentation with the additional flags for "no expiry" and "no cleaner":
+
+
+
+## Installation
+
+To get started with **Carbon**, install it via `go get`:
+
+```bash
+go get github.com/scott-mescudi/carbon
+```
+
+## Basic Usage
+
+Carbon provides an easy-to-use in-memory caching solution with built-in expiry handling. Here's how to use it:
+
+### Create a New Cache Store
+
+To create a new instance of the **CarbonStore**, use the `NewCarbonStore` function. You can optionally pass in a `cleanFrequency` to periodically clean expired items from the store. If you do not want the cleaner routine to run, pass `carbon.NoClean`.
+
+```go
+package main
+
+import (
+    "fmt"
+    "github.com/scott-mescudi/carbon"
+    "time"
+)
+
+func main() {
+    // Create a new Carbon store with a 5-minute cleanup frequency
+    cache := carbon.NewCarbonStore(5 * time.Minute)
+
+    // Set a cache key with a 10-second expiry
+    cache.Set("user:123", "John Doe", 10 * time.Second)
+
+    // Retrieve a cached value
+    value, err := cache.Get("user:123")
+    if err != nil {
+        fmt.Println("Error:", err)
+        return
+    } 
+    
+    fmt.Println("Cached Value:", value)
+    
+}
+```
+
+Alternatively, to create a store without the cleaner:
+
+```go
+// Create a new Carbon store without the cleaner routine
+cache := carbon.NewCarbonStore(carbon.NoClean)
+```
+
+### Importing a Cache Store from a File
+
+You can also initialize the **CarbonStore** by loading data from a file. The `ImportStoreFromFile` function parses a file, matches key-value pairs using a regular expression, and loads them into the cache.
+
+```go
+cache, err := carbon.ImportStoreFromFile("cache_data.txt", 5 * time.Minute)
+if err != nil {
+    fmt.Println("Error loading cache:", err)
+} else {
+    fmt.Println("Cache loaded successfully!")
+}
+```
+
+### Setting and Getting Cached Values
+
+You can store values in the cache with a specified expiration time. If the expiration time is not set, the key will persist indefinitely until it is manually deleted. 
+
+#### Set a Cache Key
+
+You can set keys with the following options:
+- **Expiry time:** Specify a duration after which the key will expire.
+- **No expiry:** Use the `carbon.NoExpiry` flag to keep the key indefinitely.
+
+```go
+// Set a cache key that expires in 10 seconds
+cache.Set("user:123", "John Doe", 10 * time.Second)
+
+// Set a cache key with no expiry (keeps the key forever, or until manually deleted)
+cache.Set("user:124", "Jane Doe", carbon.NoExpiry)
+
+// Set a cache key with no expiry and no cleaner
+cache.Set("user:125", "Alice", carbon.NoExpiry)
+```
+
+#### Get a Cache Key
+
+```go
+value, err := cache.Get("user:123")
+if err != nil {
+    fmt.Println("Error:", err)
+    return
+} 
+
+fmt.Println("Value:", value)
+
+```
+
+If the key is expired, it will be removed from the cache, and an error will be returned:
+
+```go
+// If the key has expired
+value, err := cache.Get("user:123")
+if err != nil {
+    fmt.Println("Error:", err)  // Output: 'user:123' is expired
+}
+```
+
+### Deleting Keys
+
+You can delete keys manually from the cache:
+
+```go
+cache.Delete("user:123")
+```
+
+### Clearing the Cache Store
+
+To clear all keys in the cache:
+
+```go
+cache.ClearStore()
+```
+
+### Stopping the Cache Cleaner
+
+The background cleaner is responsible for removing expired items periodically. If you want to stop the cleaner, you can call the `StopCleaner` method:
+
+```go
+cache.StopCleaner()
+```
+
+### Backup and Restore Cache
+
+To back up your cache to a file, use the `BackupToFile` method:
+
+```go
+err := cache.BackupToFile("backup.txt")
+if err != nil {
+    fmt.Println("Error backing up cache:", err)
+} else {
+    fmt.Println("Cache backed up successfully!")
+}
+```
+
+To import the backup into a new **CarbonStore** instance, use `ImportStoreFromFile`.
+
+## Key Invalidation Mechanisms
+
+Carbon provides two mechanisms for invalidating expired keys:
+
+- **Background Expiry Check (Optional):** A background Go routine runs at a configurable interval (`cleanFrequency`) and checks for expired items. Expired items are deleted automatically.
    
-3. **Persistent Storage Integration**:
-   - Provide an option for users to back up the cache to persistent storage (e.g., files or databases) so that data isn't lost when the application restarts. This can be particularly useful for caching non-volatile data like configuration settings.
+   Example of setting up the cleaner with a 5-minute interval:
+   ```go
+   cache := carbon.NewCarbonStore(5 * time.Minute)
+   ```
 
-4. **Cache Versioning**:
-   - Allow cache versioning so that users can easily invalidate and refresh specific versions of data. This is especially useful when your app or service evolves, and cached data becomes incompatible with the new version.
+- **On-Demand Expiry Check:** Each time you attempt to retrieve a cached value, Carbon will check if it is expired. If expired, the key is deleted, and `nil` is returned.
 
-5. **Cache Statistics/Monitoring**:
-   - Include built-in methods to track cache hits, misses, eviction counts, memory usage, and other statistics. This can help users monitor cache efficiency and adjust configuration for better performance.
-   - You could also allow logging or visual reporting (in case the cache grows large) to give users insight into cache performance.
 
-6. **Thread-Safety and Concurrency Support**:
-   - Ensure that the cache is thread-safe, allowing it to be used safely in multi-threaded environments. You can use locks or more advanced techniques (like read-write locks) to ensure that cache operations do not conflict in concurrent scenarios.
-   - Implement atomic operations such as **incrementing** or **decrementing** values in the cache, which can be useful for counters or flags.
+## Todo
 
-7. **TTL Reset on Access (Sliding Expiry)**:
-   - Extend the expiry mechanism to support a "sliding" TTL. With sliding expiry, the cache entry’s TTL is reset every time the item is accessed. This ensures that frequently accessed items stay in the cache for longer periods.
+- **Dynamic TTL (Time-To-Live) Adjustments**  
+  Allow developers to extend the TTL of cache keys dynamically, keeping frequently accessed items alive longer without requiring a full cache reset.
 
-8. **Cache Prefetching**:
-   - Implement an option for **lazy loading** or **prefetching** data into the cache based on some predefined conditions or access patterns. This can proactively load data into the cache, reducing latency for the next request.
+- **Atomic Operations and Transactions**  
+  Support atomic operations like compare-and-swap (CAS) for cache keys, enabling safe, conditional updates to cache values based on their current state.
 
-9. **Namespaces**:
-   - Allow users to organize cache entries into namespaces or groups. This would allow them to set, retrieve, or delete cache entries within a specific namespace, which is useful for managing caches in larger applications with different types of data.
+- **Automatic Expiry Based on Events**  
+  Add event-driven expiry, where cache keys automatically expire when certain conditions or external events (e.g., database updates) are triggered.
 
-10. **Distributed Cache Support (if Scaling is Considered)**:
-   - Although local caches typically don’t require distribution, if you plan for future scaling or hybrid use cases, you could add support for **distributed cache** systems (e.g., using a local cluster of machines or integrating with external systems like Redis).
-   - Implementing **replication** within a local environment could also be an option for users who want to scale across multiple machines.
-
-11. **Custom Serialization/Deserialization**:
-   - Allow users to define how cache data is serialized and deserialized. For example, providing hooks to customize how objects are stored in the cache can help with compatibility when caching complex data structures or handling various data formats (JSON, binary, etc.).
-
-12. **Cache Pre-warming**:
-   - Provide a feature to **pre-warm** the cache after startup, where the cache is automatically populated with predefined values or a set of commonly accessed data. This reduces initial latency and ensures the cache is ready to serve requests immediately.
-
-13. **Async API Support**:
-   - Support **asynchronous operations** for cache interactions, especially useful for web applications where non-blocking operations are critical to maintain high performance under load.
-   - Users could perform cache operations without waiting for the response, which can be beneficial when interacting with large amounts of data.
-
-14. **Backup and Restore**:
-   - Enable users to easily **back up** the cache to disk and **restore** it later. This is particularly useful for long-running applications or environments where the cache might store a significant amount of important, non-volatile data.
-
-15. **Expiration Callbacks (on Expiry)**:
-   - Allow users to set **callback functions** that are triggered when a cache item expires. This can be helpful for automatically reloading data into the cache or logging expiry events.
-
-16. **Cache Warm-Up for Expired Keys**:
-   - Implement automatic "cache warm-up" where expired keys are proactively re-fetched or refreshed in the background once they are invalidated. This can help ensure the cache is refreshed without the user experiencing a delay in retrieval when accessing expired data.
-
-17. **Integrated Caching Strategies**:
-   - Provide out-of-the-box caching strategies like **write-through**, **write-behind**, or **cache-aside**. These strategies can allow the cache to interact intelligently with your underlying data source (e.g., a database), depending on how users want to manage consistency between the cache and the source data.
-
----
-
-### **Summary of Features**:
-
-#### **Already Features**:
-- **Expiry Time for Keys**
-- **Set, Retrieve, and Delete Keys/Values**
-- **Cache Invalidation**
-
-#### **Additional Features to Consider**:
-1. **Eviction Policies** (LRU, LFU, FIFO)
-2. **Automatic Cache Resizing**
-3. **Persistent Storage Integration**
-4. **Cache Versioning**
-5. **Cache Statistics/Monitoring**
-6. **Thread-Safety and Concurrency Support**
-7. **TTL Reset on Access (Sliding Expiry)**
-8. **Cache Prefetching**
-9. **Namespaces**
-10. **Distributed Cache Support** (if scaling in the future)
-11. **Custom Serialization/Deserialization**
-12. **Cache Pre-warming**
-13. **Async API Support**
-14. **Backup and Restore**
-15. **Expiration Callbacks**
-16. **Cache Warm-Up for Expired Keys**
-17. **Integrated Caching Strategies** (write-through, cache-aside)
+- **Cache Size Limit and Monitoring**  
+  Introduce a maximum cache size (either by memory or number of entries) with configurable eviction policies to automatically manage cache size, along with monitoring features to track cache performance.
