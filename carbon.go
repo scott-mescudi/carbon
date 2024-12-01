@@ -44,6 +44,39 @@ func (s *CarbonStore) Get(key any) (value any, err error) {
 	return carb.Value, nil
 }
 
+// UpdateTTL updates the Time-To-Live (TTL) for a specified key in the CarbonStore.
+// It modifies the TTL of an existing key, effectively extending or reducing its expiration time.
+// If the key does not exist in the store, or if there is an issue updating the TTL, an error is returned.
+func (s *CarbonStore) UpdateTTL(key any, newTTL time.Duration) error{
+	rawValue, ok := s.store.Load(key)
+	if !ok || rawValue == nil {
+		return fmt.Errorf("Failed to update TTL: key doesnt exist")
+	}
+
+	value := rawValue.(CarbonValue)
+	nt := time.Now().Add(newTTL)
+	value.Expiry = &nt
+
+	_, ok = s.store.Swap(key, value)
+	if !ok {
+		return fmt.Errorf("Failed to update TTL")
+	}
+
+	return nil
+}
+
+
+// Loops over the store and returns the amount of keys it contains.
+func (s *CarbonStore) Len() int {
+	total := 0
+	s.store.Range(func (key, value any) bool{
+		total++
+		return true
+	})
+
+	return total
+}
+	
 // Delete removes a key-value pair from the store by its key.
 func (s *CarbonStore) Delete(key any) {
     s.store.Delete(key)

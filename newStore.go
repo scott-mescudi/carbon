@@ -22,9 +22,9 @@ func NewCarbonStore(cleanFrequency time.Duration) *CarbonStore {
 }
 
 // ImportStoreFromFile reads a file and extracts key-value pairs in the format {key=value} using a regular expression.
-// The key-value pairs found in the file are then set in the store with no expiry time (NoExpiry).
+// The key-value pairs found in the file are then set in the store with no expiry time (NoExpiry) or a Default expiry time.
 // It also starts a cleaner goroutine if `cleanFrequency` is provided.
-func ImportStoreFromFile(filepath string, cleanFrequency time.Duration) (*CarbonStore, error) {
+func ImportStoreFromFile(filepath string, cleanFrequency time.Duration, defaultExpiry time.Duration) (*CarbonStore, error) {
 	file, err := os.ReadFile(filepath)
 	if err != nil {
 		return nil, err
@@ -38,11 +38,18 @@ func ImportStoreFromFile(filepath string, cleanFrequency time.Duration) (*Carbon
 	pattern := `\{(\w+)=(\w+)\}`
 	re := regexp.MustCompile(pattern)
 	matches := re.FindAllStringSubmatch(string(file), -1)
+	
+	var ss time.Duration
+	if defaultExpiry == NoExpiry {
+		ss = NoExpiry
+	}else{
+		ss = defaultExpiry
+	}
 
 	
 	for _, match := range matches {
 		if len(match) == 3 {
-			s.Set(match[1], match[2], NoExpiry)
+			s.Set(match[1], match[2], ss)
 		}
 	}
 

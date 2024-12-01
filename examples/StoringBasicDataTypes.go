@@ -20,7 +20,6 @@ func main() {
 	// Caching a float value with no expiry.
 	cdb.Set("user_score", 98.6, carbon.NoExpiry)
 
-	// Retrieve and print the cached values.
 
 	// Retrieve the string value.
 	stringValue, err := cdb.Get("greeting")
