@@ -193,15 +193,8 @@ To see more use cases and examples of how to implement **Carbon** in your Go app
 ---
 
 ## Todo
-
-- **Dynamic TTL (Time-To-Live) Adjustments**  
-  Allow developers to extend the TTL of cache keys dynamically, keeping frequently accessed items alive longer without requiring a full cache reset.
-
-- **Atomic Operations and Transactions**  
-  Support atomic operations like compare-and-swap (CAS) for cache keys, enabling safe, conditional updates to cache values based on their current state.
-
 - **Automatic Expiry Based on Events**  
   Add event-driven expiry, where cache keys automatically expire when certain conditions or external events (e.g., database updates) are triggered.
 
-- **Cache Size Limit and Monitoring**  
+- **Cache Size Limit**  
   Introduce a maximum cache size (either by memory or number of entries) with configurable eviction policies to automatically manage cache size, along with monitoring features to track cache performance.

@@ -12,6 +12,10 @@ const (
 	NoClean = -1
 )
 
+var (
+	CacheLimit = -1
+)
+
 // Set adds a key-value pair to the store with an optional expiration time.
 // If the expiration is set to carbon.NoExpiry, the key-value pair will remain in the store indefinitely.
 func (s *CarbonStore) Set(key, value any, expiry time.Duration) {
@@ -44,6 +48,23 @@ func (s *CarbonStore) Get(key any) (value any, err error) {
 	return carb.Value, nil
 }
 
+// GetTTL retrieves the TTL of a value by its key from the store.
+// If the key does not exist, it returns nil and an error.
+// if there is no TTL set it retruns nil and a error
+func (s *CarbonStore) GetTTL(key any) (TTL *time.Time, err error) {
+	v, ok := s.store.Load(key)
+	if v == nil || !ok {
+		return nil, fmt.Errorf("'%v' does not exist", key)
+	}
+
+	carb := v.(CarbonValue)
+	if carb.Expiry == nil {
+		return nil, fmt.Errorf("no TTL set")
+	}	
+
+	return carb.Expiry, nil
+}
+
 // UpdateTTL updates the Time-To-Live (TTL) for a specified key in the CarbonStore.
 // It modifies the TTL of an existing key, effectively extending or reducing its expiration time.
 // If the key does not exist in the store, or if there is an issue updating the TTL, an error is returned.
@@ -63,6 +84,21 @@ func (s *CarbonStore) UpdateTTL(key any, newTTL time.Duration) error{
 	}
 
 	return nil
+}
+
+// CompareAndSwap swaps the old and new values for key
+// if the value stored in the map is equal to old.
+// The old value must be of the same type
+func (s *CarbonStore) CompareAndSwap(key, old, new any) (swapped bool) {
+	TTL, err := s.GetTTL(key)
+	if TTL == nil || err != nil {
+		return false
+	}
+
+	sOld := CarbonValue{Value: old, Expiry: TTL}
+	sNew := CarbonValue{Value: new, Expiry: TTL}
+
+	return s.store.CompareAndSwap(key, sOld, sNew)
 }
 
 
