@@ -1,8 +1,8 @@
-# Carbon - A Simple In-Memory Cache for High Throughput  
+# Carbon - A Simple In-Memory Cache for Quick Development
 
 [![Go Reference](https://pkg.go.dev/badge//github.com/scott-mescudi/carbon/.svg)](https://pkg.go.dev//github.com/scott-mescudi/carbon/)
 
-**Carbon** is a lightweight, high-performance in-memory cache library for Go, designed to meet the demands of APIs requiring fast and efficient data caching.
+**Carbon** is a lightweight, high-performance in-memory cache library for Go, designed to be easy to use with seamless cache invalidation.
 
 At its core, Carbon leverages a thread-safe `sync.Map` to ensure simplicity and reliability. The cache operates locally, meaning only the application instance that initialized it can access the data, ensuring isolation and high performance.
 
