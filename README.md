@@ -1,10 +1,15 @@
-# Carbon - A Lightweight In-Memory Cache for High Throughput  
+# Carbon - A Simple In-Memory Cache for High Throughput  
 
 [![Go Reference](https://pkg.go.dev/badge//github.com/scott-mescudi/carbon/.svg)](https://pkg.go.dev//github.com/scott-mescudi/carbon/)
 
-**Carbon** is a lightweight, high-performance in-memory cache library for Go, designed to meet the demands of APIs requiring fast and efficient data caching. I created Carbon as an alternative to Redis when it proved too slow for some of my APIs and when managing invalidation in a `sync.Map` became overly complex.  
+**Carbon** is a lightweight, high-performance in-memory cache library for Go, designed to meet the demands of APIs requiring fast and efficient data caching.
 
-At its core, Carbon leverages a thread-safe `sync.Map` to ensure simplicity and reliability. The cache operates locally, meaning only the application instance that initialized it can access the data, ensuring isolation and high performance.  
+At its core, Carbon leverages a thread-safe `sync.Map` to ensure simplicity and reliability. The cache operates locally, meaning only the application instance that initialized it can access the data, ensuring isolation and high performance.
+
+> **⚠ Disclaimer:**  
+> **Carbon** was designed as a quick and simple caching solution for hackathons, prototypes, and non-critical applications. It is **not recommended for production use**, as it lacks advanced features like distributed caching, data replication, and fault tolerance.
+
+---
 
 ### Key Invalidation  
 Carbon provides two efficient mechanisms for invalidating expired keys:  
@@ -12,13 +17,11 @@ Carbon provides two efficient mechanisms for invalidating expired keys:
 - **On-Demand Expiry Check:** When retrieving a key, Carbon checks if it is expired. If expired, the key is deleted immediately, and `nil` is returned.  
 
 ### Why Use Carbon?  
-- **When Redis is Too Slow:** If your application requires low-latency caching and Redis introduces unnecessary overhead, Carbon offers a streamlined alternative.  
 - **Simplicity and Expiry Management:** Carbon provides a straightforward in-memory cache solution with built-in support for key expiry and flexible invalidation strategies.  
 - **Local Access Only:** Perfect for use cases where the cache doesn't need to be shared across multiple instances of your application.  
 
 **When Not to Use Carbon:**  
 If your cache needs to be accessible by multiple instances or services, Redis or a distributed caching solution would be a better fit.
-
 
 ---
 
@@ -62,7 +65,6 @@ func main() {
     } 
     
     fmt.Println("Cached Value:", value)
-    
 }
 ```
 
@@ -117,7 +119,6 @@ if err != nil {
 } 
 
 fmt.Println("Value:", value)
-
 ```
 
 If the key is expired, it will be removed from the cache, and an error will be returned:
