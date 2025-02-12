@@ -20,7 +20,6 @@ func main() {
 	// Caching a float value with no expiry.
 	cdb.Set("user_score", 98.6, carbon.NoExpiry)
 
-
 	// Retrieve the string value.
 	stringValue, err := cdb.Get("greeting")
 	if err != nil {
@@ -32,9 +31,9 @@ func main() {
 		return
 	}
 
-	// Note: For basic data types like strings, integers, and floats, 
-	// there is no need for type assertion. However, it is recommended 
-	// for safety to explicitly check the type to avoid potential issues 
+	// Note: For basic data types like strings, integers, and floats,
+	// there is no need for type assertion. However, it is recommended
+	// for safety to explicitly check the type to avoid potential issues
 	// if the cache stores unexpected types.
 
 	// Type assert the string value (recommended for safety).

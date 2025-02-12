@@ -13,7 +13,6 @@ func NewCarbonStore(cleanFrequency time.Duration) *CarbonStore {
 	z := make(chan struct{})
 	s := CarbonStore{store: sync.Map{}, stopChan: z}
 
-
 	if cleanFrequency != NoClean {
 		go s.cleanStore(cleanFrequency)
 	}
@@ -30,23 +29,20 @@ func ImportStoreFromFile(filepath string, cleanFrequency time.Duration, defaultE
 		return nil, err
 	}
 
-
 	z := make(chan struct{})
 	s := CarbonStore{store: sync.Map{}, stopChan: z}
 
-	
 	pattern := `\{(\w+)=(\w+)\}`
 	re := regexp.MustCompile(pattern)
 	matches := re.FindAllStringSubmatch(string(file), -1)
-	
+
 	var ss time.Duration
 	if defaultExpiry == NoExpiry {
 		ss = NoExpiry
-	}else{
+	} else {
 		ss = defaultExpiry
 	}
 
-	
 	for _, match := range matches {
 		if len(match) == 3 {
 			s.Set(match[1], match[2], ss)

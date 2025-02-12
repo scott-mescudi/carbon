@@ -25,7 +25,7 @@ func (s *CarbonStore) Set(key, value any, expiry time.Duration) {
 	}
 
 	exp := time.Now().Add(expiry)
-	s.store.Store(key, CarbonValue{Value: value, Expiry: &exp })
+	s.store.Store(key, CarbonValue{Value: value, Expiry: &exp})
 }
 
 // Get retrieves a value by its key from the store.
@@ -42,7 +42,7 @@ func (s *CarbonStore) Get(key any) (value any, err error) {
 		if carb.Expiry.Before(time.Now()) {
 			s.store.Delete(key)
 			return nil, fmt.Errorf("'%v' is expired", key)
-		}	
+		}
 	}
 
 	return carb.Value, nil
@@ -60,7 +60,7 @@ func (s *CarbonStore) GetTTL(key any) (TTL *time.Time, err error) {
 	carb := v.(CarbonValue)
 	if carb.Expiry == nil {
 		return nil, fmt.Errorf("no TTL set")
-	}	
+	}
 
 	return carb.Expiry, nil
 }
@@ -68,7 +68,7 @@ func (s *CarbonStore) GetTTL(key any) (TTL *time.Time, err error) {
 // UpdateTTL updates the Time-To-Live (TTL) for a specified key in the CarbonStore.
 // It modifies the TTL of an existing key, effectively extending or reducing its expiration time.
 // If the key does not exist in the store, or if there is an issue updating the TTL, an error is returned.
-func (s *CarbonStore) UpdateTTL(key any, newTTL time.Duration) error{
+func (s *CarbonStore) UpdateTTL(key any, newTTL time.Duration) error {
 	rawValue, ok := s.store.Load(key)
 	if !ok || rawValue == nil {
 		return fmt.Errorf("Failed to update TTL: key doesnt exist")
@@ -101,32 +101,31 @@ func (s *CarbonStore) CompareAndSwap(key, old, new any) (swapped bool) {
 	return s.store.CompareAndSwap(key, sOld, sNew)
 }
 
-
 // Loops over the store and returns the amount of keys it contains.
 func (s *CarbonStore) Len() int {
 	total := 0
-	s.store.Range(func (key, value any) bool{
+	s.store.Range(func(key, value any) bool {
 		total++
 		return true
 	})
 
 	return total
 }
-	
+
 // Delete removes a key-value pair from the store by its key.
 func (s *CarbonStore) Delete(key any) {
-    s.store.Delete(key)
+	s.store.Delete(key)
 }
 
 // ClearStore removes all keys and values from the store, freeing up memory.
 func (s *CarbonStore) ClearStore() {
-    s.store.Clear()
+	s.store.Clear()
 }
 
 // CloseStore stops any active cleaner goroutines (if present) and clears the store to free memory.
 func (s *CarbonStore) CloseStore() {
 	s.StopCleaner()
-    s.store.Clear()
+	s.store.Clear()
 }
 
 // Printall prints all key-value pairs in the store to stdout.

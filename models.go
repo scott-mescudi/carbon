@@ -6,12 +6,11 @@ import (
 )
 
 type CarbonStore struct {
-	store sync.Map
+	store    sync.Map
 	stopChan chan struct{}
 }
 
-
 type CarbonValue struct {
-	Value any
+	Value  any
 	Expiry *time.Time
 }

@@ -14,7 +14,7 @@ func (s *CarbonStore) cleanStore(cleanFrequency time.Duration) {
 	for {
 		select {
 		case <-s.stopChan:
-			return 
+			return
 		case <-ticker.C:
 			s.store.Range(func(key, value any) bool {
 				if value.(CarbonValue).Expiry == nil {
